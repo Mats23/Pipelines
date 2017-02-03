@@ -1,9 +1,11 @@
 #
-# ANALISE DE SCORE DE ALINHAMENTOS MULTIPLOS COM NORMAL D POR SW
-#  Este script realiza a gera score do NORMD por slidewindow baseado no FASTA de alinhamentos multiplos.
-#  (!)Para utilizar ele e necessario ter instalado no servidor os seguintes programas:
+# SCORING ANALYSES OF MULTIPLE ALIGNMENTS BY NORMD
+#  This script make a NORMD score by slide window using a multiple alignment file in FASTA format
+#
+#  (!)For to use you need to install some softwares:
 #	** NORMD 1.3 ()
 #	** EMBOSS toolkit (http://emboss.sourceforge.net/)
+#   ** Need copy the SEQRET software for the same folder of this script.
 
 import os
 import sys
@@ -18,41 +20,38 @@ def getparam(param_name):
             name = True
     return False
 
-# Verifica variaveis e armazena para o pipeline.
+# Verify if the parameters exists. Case exist show the message.
 if (getparam("-h") != False):
-    print("Este script realiza a gera score do NORMD por slidewindow baseado no FASTA de alinhamentos multiplos.")
-    print(" (!)Para utilizar ele e necessario ter instalado no servidor os seguintes programas:")
+    print("This script make a NORMD score by slide window using a multiple alignment file in FASTA format.")
+    print(" (!)For to use you need to install some softwares:")
     print("     ** NORMD 1.3 ()")
     print("     ** EMBOSS toolkit (http://emboss.sourceforge.net/)")
+    print("     ** Need copy the SEQRET software for the same folder of this script")
     print("")
-    print("Alguns dos nossos parametros:")
-    print(" python SMABSW.py -normd -seqread -swsize -fasta -finalpos")
+    print("See the example command:")
+    print(" python SMABSW.py -normd -swsize -fasta -finalpos -stepsize")
 else:
-    # Checa se todos os parametros obrigatorios estao preenchidos
+    #Verify if the mandatory fields is filled.
     validateparam = True
     if (getparam("-normd") == False):
-        print("(!)Precisa selecionar a pasta ou comando do NORMD")
-        validateparam = False
-    elif (getparam("-seqread") == False):
-        print("(!)Precisa selecionar a pasta ou comando do SeqRead")
+        print("(!)Please select the NORMD folder")
         validateparam = False
     elif (getparam("-swsize") == False):
-        print("(!)Precisa selecionar o tamanho do slide window")
+        print("(!)Please select a slide window number")
         validateparam = False
     elif (getparam("-fasta") == False):
-        print("(!)Precisa selecionar o arquivo FASTA com multiplos alinhamentos")
+        print("(!)Please select the multiple alignment file in FASTA format")
         validateparam = False
     elif (getparam("-finalpos") == False):
-        print("(!)Precisa selecionar a posicao final do NORMD Score")
+        print("(!)Please select the final position of the alignment")
         validateparam = False
     elif (getparam("-stepsize") == False):
-        print("(!)Precisa selecionar a Step size")
+        print("(!)Please select the step size")
         validateparam = False
 
-    # Se todos os parametros obrigatorios estiverem corretos, executa o pipeline
+    # If every parameters is right, continue the pipeline.
     if (validateparam):
         param_normd = getparam("-normd")
-        param_seqread = getparam("-seqread")
         param_swsize = getparam("-swsize")
         param_fasta = getparam("-fasta")
         param_finalpos = getparam("-finalpos")
@@ -60,16 +59,24 @@ else:
 
         os.system("rm scores.txt")
 
-        # Gera scores para cara slide windows
+        # Build the scores by slide window
         inipos = 0
         endpos = int(param_swsize)
+
         while (endpos <= int(param_finalpos)):
+
+            # Convert the FASTA file in a temporary MSF file with the slide window sequence.
             os.system("./seqret -auto -stdout -sequence " + param_fasta +
                       " -outseq temp.msf --sbegin " + str(inipos) +" --send "+str(endpos)+" "
                       "-sformat1 fasta -osformat2 msf")
 
+            # Run the NORMD for this slide window and save every pontuation in the scores.txt.
             os.system( param_normd + "/normd temp.msf "+param_normd+"/blosum62.bla 11 1 -v >> scores.txt")
 
+            # Show the actual slide window.
             print ("["+ str(inipos) + "..." + str(endpos) + "][N="+str(param_finalpos)+"]")
             inipos = inipos + int(param_stepsize)
             endpos = endpos + int(param_stepsize)
+
+        # Remove the temporary file
+        os.system("rm temp.msf")
