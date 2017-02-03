@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # ANALISE GERAL DE RNA-SEQ
 #  Este script realiza a analise geral do experimento de RNA-Seq com Illumina.
