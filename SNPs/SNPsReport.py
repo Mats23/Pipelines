@@ -115,6 +115,73 @@ def addcolumndata(tab, addcolumndatafile,positioncolumn,chromosomecolumn,namenew
     sourcefile.close()
     print("Concluded the " + addcolumndatafile + " file.")
 
+#Function for build statistics about the file tab.
+def addStatistic(tab):
+    # Read source positions file and the new data tab file.
+    sourcefile = open(tab, 'r')
+    content = sourcefile.readlines()
+
+    # Build the dictionary of positions and snps. The idea for store this data in memory is for to improve the
+    # performance of process the files.
+    array_content = {}
+    # Read the tab file and calc the statistics.
+    tempcontent = []
+    for line in content:
+        line = line.replace("\n", "").replace(" ","").replace("\t\t", "\t")
+        arrayline = tuple(line.split("\t"))
+
+        # If the content not is a header store it in the array_content.
+        if "position" not in line :
+            if "chr" in line:
+                # Calc the counter by base and the total counter of mutations
+                # Declare the variables for count.
+                count_a = 0
+                count_t = 0
+                count_c = 0
+                count_g = 0
+                count_withoutmut = 0
+                count_mutations = 0
+
+                for i in range(3,len(arrayline)):
+                    if "A" in arrayline[i]:
+                        count_a = count_a + 1
+                    if "T" in arrayline[i]:
+                        count_t = count_t + 1
+                    if "C" in arrayline[i]:
+                        count_c = count_c + 1
+                    if "G" in arrayline[i]:
+                        count_g = count_g + 1
+                    if "." in arrayline[i]:
+                        count_withoutmut = count_withoutmut + 1
+
+                #Add the count in the tab file.
+                count_mutations = count_a + count_t + count_g + count_c
+                contentline = ""
+                for key in arrayline:
+                    if "\r\n" not in key:
+                        contentline = contentline + key + "\t"
+
+                contentline = contentline +str(count_a)+"\t"+ str(count_t)+"\t"+str(count_c)+"\t"+str(count_g)+ "\t" \
+                +str(count_withoutmut)+ "\t" +str(count_mutations)+ "\r\n"
+                tempcontent.append(contentline.replace(" ","").replace("		", "\t"))
+        else:
+            line = line.replace("\n", "") + " \t " + str("#Count_A") + " \t " + str("#Count_T") + " \t " +str("#Count_C") + " \t " \
+                   +str("#Count_G") + " \t " + "#Count_Without_mutations" + " \t " + "#Count_mutations" + "\r\n"
+            tempcontent.append(line)
+
+    #Delete the old tab file.
+    os.system("rm "+ tab)
+
+    #Save the statistics in the tab file.
+    print("Saving the final statistics in the file...")
+    tempfile = open(tab, 'w')
+    tempfile.writelines(tempcontent)
+    tempfile.close()
+    sourcefile.close()
+    print("Concluded the " + tab + " file.")
+
+
+
 # Main pipeline
 if(getparam("-h")!= False):
     printhelp()
@@ -163,6 +230,8 @@ else:
 
         os.system("mv " + name + " output_snps_positions.tab")
         os.system("rm *temp*")
+        addStatistic("output_snps_positions.tab")
+
     else:
         printhelp()
 
