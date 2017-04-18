@@ -127,7 +127,7 @@ def addStatistic(tab):
     # Read the tab file and calc the statistics.
     tempcontent = []
     for line in content:
-        line = line.replace("\n", "").replace(" ","").replace("\t\t", "\t")
+        line = line.replace("\n", "").replace(" ","").replace("\t\t", "\t").replace("\r","").replace("\r\n","")
         arrayline = tuple(line.split("\t"))
 
         # If the content not is a header store it in the array_content.
@@ -156,18 +156,34 @@ def addStatistic(tab):
 
                 #Add the count in the tab file.
                 count_mutations = count_a + count_t + count_g + count_c
+                arrayline =  arrayline + (count_a,)
+                arrayline = arrayline + (count_t,)
+                arrayline = arrayline + (count_c,)
+                arrayline  = arrayline + (count_g,)
+                arrayline = arrayline + (count_withoutmut,)
+                arrayline = arrayline + (count_mutations,)
+
                 contentline = ""
                 for key in arrayline:
-                    if "\r\n" not in key:
-                        contentline = contentline + key + "\t"
+                    if "\r\n" not in str(key):
+                        contentline = contentline + str(key) + "\t"
 
-                contentline = contentline +str(count_a)+"\t"+ str(count_t)+"\t"+str(count_c)+"\t"+str(count_g)+ "\t" \
-                +str(count_withoutmut)+ "\t" +str(count_mutations)+ "\r\n"
-                tempcontent.append(contentline.replace(" ","").replace("		", "\t"))
+                tempcontent.append(contentline.replace("\r\n","").replace("\r","").replace("\n", "")+ "\r\n")
         else:
-            line = line.replace("\n", "") + " \t " + str("#Count_A") + " \t " + str("#Count_T") + " \t " +str("#Count_C") + " \t " \
-                   +str("#Count_G") + " \t " + "#Count_Without_mutations" + " \t " + "#Count_mutations" + "\r\n"
-            tempcontent.append(line)
+            line = line.replace("\n", "").replace(" ", "").replace("\t\t", "\t").replace("\r\n","").replace("\r","")
+            arrayline = tuple(line.split("\t"))
+            arrayline = arrayline + ("#Count_A",)
+            arrayline = arrayline + ("#Count_T",)
+            arrayline = arrayline + ("#Count_C",)
+            arrayline = arrayline + ("#Count_G",)
+            arrayline = arrayline + ("#Count_Without_mutations",)
+            arrayline = arrayline + ("#Count_mutations",)
+            contentline = ""
+            for key in arrayline:
+                if "\r\n" not in str(key):
+                    contentline = contentline + str(key) + "\t"
+
+            tempcontent.append(contentline.replace("\r\n","").replace("\r","").replace("\n", "")+ "\r\n")
 
     #Delete the old tab file.
     os.system("rm "+ tab)
